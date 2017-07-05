@@ -10,6 +10,7 @@ import SolvesHistory from './SolvesHistory.js';
 import { browserHistory } from 'react-router';
 import request from 'superagent';
 import auth from '../auth.js';
+import {Table, TableBody, TableHeader, TableHeaderColumn, TableRow, TableRowColumn} from 'material-ui/Table';
 
 const scramble = {
   height: 150,
@@ -77,7 +78,9 @@ class Timer extends React.Component {
       button_hover_colour: '#bfbfbf',
       solves: [],
       lastkey: '',
-      lastkey_time: null
+      lastkey_time: null,
+      solve_history_rows: [],
+      num_of_solves: 0
     }
     console.log('is authed: ', auth.isUserAuthenticated())
     this.handleKeyUp = this.handleKeyUp.bind(this);
@@ -121,7 +124,7 @@ class Timer extends React.Component {
 
         <Paper style={time_history} zDepth={1} rounded={false}>
           <Subheader>Solves</Subheader>
-          <SolvesHistory data={this.state.solves}/>
+          <SolvesHistory rows={this.state.solves}/>
         </Paper>
 
       </div>
@@ -148,7 +151,6 @@ class Timer extends React.Component {
   }
 
   handleKeyUp(key) {
-    // console.log(key);
     if(key.keyCode === 32) {// space
       this.handlOnclick();
     }
@@ -168,7 +170,6 @@ class Timer extends React.Component {
 
   handleKeyDown(key) {
     if(this.state.lastkey !== key.keyCode) {
-      // console.log('last key update');
       this.setState({
         lastkey: key.keyCode,
         lastkey_time: new Date().getTime()
@@ -203,16 +204,26 @@ class Timer extends React.Component {
       var current_solve = {
         solve_time: this.state.time,
         time: new Date().toLocaleString(),
-        scrable: this.state.current_scramble
-      }
+        scramble: this.state.current_scramble
+      };
+      console.log(current_solve.scramble);
+	var new_row = (
+	<TableRow key={this.state.num_of_solves+1}>
+	<TableRowColumn>{parseInt(current_solve.solve_time)/100}</TableRowColumn>
+	</TableRow>
+	)
+     
       this.sendTimeToServer(current_solve);
       this.setState({
         timerstate: 'stoped',
         current_scramble: this.getScramble(),
         button_colour: '#a3a3a3',
         button_hover_colour: '#bfbfbf',
-        solves: this.state.solves.concat(current_solve)
+        solves: this.state.solves.concat(current_solve),
+	solve_history_rows: this.state.solve_history_rows.concat(new_row),
+	num_of_solves: this.state.num_of_solves+1
       });
+    
     } else if (this.state.timerstate === 'stoped') {
       this.setState({
         timerstate: 'started_inspection',
@@ -263,11 +274,9 @@ class Timer extends React.Component {
       .end(function(err, res) {
         if(err) {
           console.log('err: ', err);
-
         }
-
         console.log('res: ', res);
-      });
+	});
   }
 
   getButtonDisplay(string) {

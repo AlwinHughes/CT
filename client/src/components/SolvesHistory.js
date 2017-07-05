@@ -1,5 +1,6 @@
 import React from 'react';
-import DataTables from 'material-ui-datatables';
+import {Table, TableBody, TableHeader, TableHeaderColumn, TableRow, TableRowColumn} from 'material-ui/Table';
+import RaisedButton from 'material-ui/RaisedButton';
 
 const TABLE_COLUMS = [
   {
@@ -18,24 +19,69 @@ const TABLE_COLUMS = [
 
 class SolvesHistory extends React.Component {
 
-  render(){
-    // console.log(this.props.data)
-    return (
-      <DataTables height={'auto'} selectable={false} data={this.processData.bind(this)()} showCheckboxes={false}
-        page={1}
-        count={100}/>
-    )
-  }
-
-  processData() {
-    var data = this.props.data;
-    for(var i = 0; i < data.length; i++) {
-      data[i].solve_time = data[i].solve_time/100;
+  constructor(props) {
+    super(props)
+    this.state = {
+       hilighted: false,
+       selected_rows: [],
+       rows: []
     }
-    return [{scramble: 'a scramble', solve_time: 'a solve time', time: 'a time'},
-    {scramble: 'a scramble2', solve_time: 'a solve time2', time: 'a time2 '}];
+    this.onRowSelection = this.onRowSelection.bind(this);
+    this.createRows = this.createRows.bind(this);
   }
 
+  render(){
+	  console.log(this.state.selected_rows);
+    return (
+    <div>
+    <Table onRowSelection={this.onRowSelection} multiSelectable={true}>
+	<TableHeader onRowSelection={this.onRowSelection}>
+	    <TableRow>
+	    <TableHeaderColumn>Solve Time</TableHeaderColumn>
+	    <TableHeaderColumn>Penalty</TableHeaderColumn>
+	    </TableRow>
+	</TableHeader>
+	 <TableBody>
+	 	{this.createRows()}
+	  </TableBody>
+    </Table>
+    <RaisedButton label="+2" disabled={this.state.selected_rows !== []}/>
+    <RaisedButton label="DNF" disabled={!this.state.selected_rows !== []}/>
+	    
+    </div>
+    )    
+  }
+
+ onRowSelection(selected){
+   console.log(this.state);
+   if(selected === []) {
+     this.setState({
+      hilighted: false,
+      selected_rows: selected
+    })} else {
+      this.setState({
+       hilighted: true,	
+       selected_rows: selected
+      });
+   }
+ } 
+
+isSelected(index) {
+  return this.state.selected_rows.indexOf(index) !== -1;
+ }
+
+  createRows(){
+    var arr = []
+    for(var i = 0; i < this.props.rows.length; i++) {
+      var row = (
+	 <TableRow key={i} selected={this.isSelected(i)}>
+	<TableRowColumn>{parseInt(this.props.rows[i].solve_time)/100}</TableRowColumn>
+	</TableRow>
+      )
+     arr.push(row)
+    }
+    return arr
+  } 
 }
 
 export default SolvesHistory;
