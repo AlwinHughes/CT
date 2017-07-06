@@ -206,12 +206,6 @@ class Timer extends React.Component {
         time: new Date().toLocaleString(),
         scramble: this.state.current_scramble
       };
-      console.log(current_solve.scramble);
-	var new_row = (
-	<TableRow key={this.state.num_of_solves+1}>
-	<TableRowColumn>{parseInt(current_solve.solve_time)/100}</TableRowColumn>
-	</TableRow>
-	)
      
       this.sendTimeToServer(current_solve);
       this.setState({
@@ -220,8 +214,7 @@ class Timer extends React.Component {
         button_colour: '#a3a3a3',
         button_hover_colour: '#bfbfbf',
         solves: this.state.solves.concat(current_solve),
-	solve_history_rows: this.state.solve_history_rows.concat(new_row),
-	num_of_solves: this.state.num_of_solves+1
+      	num_of_solves: this.state.num_of_solves+1
       });
     
     } else if (this.state.timerstate === 'stoped') {
