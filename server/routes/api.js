@@ -3,13 +3,13 @@ const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const Solve = mongoose.model('Solve');
 const config = require('../../config');
-const isauthed = require('../middleware/isauthed.js');
+const isAuthed = require('../middleware/isauthed.js');
 
 const router = new express.Router();
 
 router.get('/dashboard', function(req, res) {
 
-  isauthed(req, res, function(req, res) {
+  isAuthed(req, res, function(req, res) {
     req.status(401).end();
   }, function(req, res, id) {
     res.status(200).json({
@@ -19,7 +19,7 @@ router.get('/dashboard', function(req, res) {
 });
 
 router.post('/addsolve', function(req, res) {
-  isauthed(req, res, function(req, res) {
+  isAuthed(req, res, function(req, res) {
     res.status(401).end();
   }, function(req, res, id) {
 
@@ -42,7 +42,7 @@ router.post('/addsolve', function(req, res) {
 
 router.post('/getallsolves', function(req, res) {
 
-  isauthed(req,res,function(req, res) {
+  isAuthed(req,res,function(req, res) {
     res.status(401).end()
   }, function(req, res, id) {
     Solve.find({'user_id': id}, function(err, docs) {
@@ -53,6 +53,32 @@ router.post('/getallsolves', function(req, res) {
       }
     })
   });
+});
+
+router.post('/addPenalty', function(req, res) {
+  isAuthed(req, res, function(req, res) {
+    res.status(401).end();
+  }, function(req, res, id) {
+    console.log(req.body);
+    for(var i = 0; i < req.body.penlties.length; i++) {
+      console.log((req.body.length - req.body.penlties[i]));
+      Solve.findOne({user_id:id}).sort({time:-1}).skip(req.body.length - req.body.penlties[i] -1).limit(1).exec(function(err, data) {
+       console.log(data);
+      // Solve.find({_id:data._id}).exec(function(err, res) {
+      //  console.log(res);
+      // })
+       data.penalty = req.body.type;
+       console.log(data);
+       Solve.update({_id:data._id}, data, {upsert: true}, function(err, res) {
+        if(err)
+          console.log(err);
+        console.log(res);
+       })
+      });
+//      console.log(req.body.penlties[i].index - length + 1);
+    }
+  })
+  
 });
 
 

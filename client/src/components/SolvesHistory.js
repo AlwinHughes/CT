@@ -1,6 +1,10 @@
 import React from 'react';
 import {Table, TableBody, TableHeader, TableHeaderColumn, TableRow, TableRowColumn} from 'material-ui/Table';
 import RaisedButton from 'material-ui/RaisedButton';
+import auth from '../auth';
+import request from 'superagent';
+import underscore from 'underscore';
+import Paper from 'material-ui/Paper';
 
 const TABLE_COLUMS = [
   {
@@ -22,7 +26,6 @@ class SolvesHistory extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-       hilighted: false,
        selected_rows: [],
        rows: [],
        penalties: []
@@ -36,9 +39,35 @@ class SolvesHistory extends React.Component {
     this.onButtonClick = this.onButtonClick.bind(this);
     this.isPenatySelected = this.isPenaltySelected.bind(this);
     this.onRemovePenalty = this.onRemovePenalty.bind(this);
+    this.sendPenaltyToServer = this.sendPenaltyToServer.bind(this);
+    this.getAverageOfLastFive = this.getAverageOfLastFive.bind(this);
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
+    var keys= Object.keys(nextState);
+
+    if(!underscore.isEqual(nextState, this.state)) {
+      console.log('they are not equal');
+      return true;
+    }
+
+    if(this.props.rows.length !== nextProps.rows.length){
+      console.log('same length');
+      return true;// dont update if the row props is still the same
+    }
+    return false;
+  }
+
+  checkArrayEquality(arr1, arr2) {
+    if(arr1.length !== arr2.length) {
+      return false;
+    }
+    console.log('array equality');
+    return true;
   }
 
   render(){
+    console.log('component is updating');
     return (
     <div>
     <Table onRowSelection={this.onRowSelection} multiSelectable={true}>
@@ -57,8 +86,61 @@ class SolvesHistory extends React.Component {
     <RaisedButton label="DNF" disabled={this.state.selected_rows.length === 0} secondary={!this.state.selected_rows.length !== 0}
       onTouchTap={this.onDNFClick}/>
     <RaisedButton label="None" disabled={!this.isPenaltySelected()} onTouchTap={this.onRemovePenalty}/>
+      <br/>
+      Average of last five: {this.getAverageOfLastFive()}
 	    </div>
     )    
+  }
+
+  getAverageOfLastFive() {
+    if(this.props.rows.length < 5) {
+      return '--';
+    }
+    var times = [];
+    var previous_dnf = false;
+    for(var i = this.props.rows.length - 1; i > this.props.rows.length - 6; i--) {
+      console.log(i);
+      var penalty = this.getPenalty();
+      if(penalty === '--') {
+        times.push(this.props.rows[i].solve_time)
+      } else if (penalty === 'DNF') {
+        if (previous_dnf) {
+          return 'DNF';
+        }
+        times.push(-1);
+        previous_dnf = true;
+      } else {
+        times.push(this.props.rows[i].solve_time + 2);
+      }
+    }
+    var max = -2;
+    var max_i;
+    var min = Number.POSITIVE_INFINITY; 
+    var min_i;
+    var sum = 0;
+    console.log('times: ',times);
+    for(var i = 0; i < times.length; i++) {
+      if(times[i] > max) {
+        max = times[i];
+        max_i = i;
+      }
+      if(times[i] < min) {
+        min = times[i];
+        min_i = i
+      }
+    }
+    console.log('max: ', max_i);
+    console.log('min: ', min_i);
+    
+    for(var i = 0; i < times.length; i++) {
+      if(i !== min_i && i !== max_i) {
+        sum = sum + times[i]
+      }
+    }
+
+    return Math.round(sum/3)/100;
+
+  
   }
 
   onButtonClick(text) {
@@ -71,8 +153,9 @@ class SolvesHistory extends React.Component {
         new_penalties[p_index] = {index: this.state.selected_rows[i], show:text}
       }
     }
-    this.setState({penalties: new_penalties}); 
-  }
+    this.setState({penalties: new_penalties});
+    this.sendPenaltyToServer(text);
+   }
 
   onRemovePenalty(){
     var new_penalties = [];
@@ -82,11 +165,35 @@ class SolvesHistory extends React.Component {
       }
     }
     this.setState({penalties: new_penalties});
+    this.sendPenaltyToServer('');
   }
 
   onPluse2Click() {
-   this.onButtonClick('+2');
+    this.onButtonClick('+2');
   }
+
+  sendPenaltyToServer(type) {
+
+    if(auth.isUserAuthenticated()) {
+      if(type === '+2') {
+        type = '2';
+      } else if (type === 'DNF') {
+        type = 'd';
+      } else {
+        type = '';
+      }
+      request.post('/api/addpenalty')
+      .set('Authorization', 'bearer '+auth.getToken())
+        .send({penlties: this.state.selected_rows, length: this.props.rows.length, type:type})
+        .end(function(err, res) {
+          if(err) {
+            console.log('err: ', err);
+          }
+          console.log('res: ', res);
+        })
+    }
+  }
+
   onDNFClick() {
     this.onButtonClick('DNF');
     console.log(this.state.penalties);

@@ -47,7 +47,7 @@ class AllSolves extends React.Component {
         } else {
           console.log(res);
           for(var i = 0; i < res.body.length; i++) {
-            arr.push(<tr><td>{res.body[i]._id}</td><td>{res.body[i].solve_time}</td><td>{res.body[i].time}</td><td>{res.body[i].scramble}</td></tr>)
+            arr.push(<tr><td>{res.body[i]._id}</td><td>{res.body[i].solve_time}</td><td>{res.body[i].time}</td><td>{res.body[i].scramble}</td><td>{res.body[i].penalty}</td></tr>)
           }
           this.setState({rows: arr});
         }

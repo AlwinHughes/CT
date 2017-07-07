@@ -47,7 +47,7 @@ const clock_text = {
 }
 
 const time_history = {
-  height: 400,
+  height: 800,
   width: 400,
   position: 'absolute',
   left: 850,
