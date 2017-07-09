@@ -21,6 +21,9 @@ const TABLE_COLUMS = [
   }
 ]
 
+const row = {
+  height: 200
+}
 class SolvesHistory extends React.Component {
 
   constructor(props) {
@@ -99,18 +102,16 @@ class SolvesHistory extends React.Component {
     var times = [];
     var previous_dnf = false;
     for(var i = this.props.rows.length - 1; i > this.props.rows.length - 6; i--) {
-      console.log(i);
-      var penalty = this.getPenalty();
+      var penalty = this.getPenalty(i);
       if(penalty === '--') {
         times.push(this.props.rows[i].solve_time)
       } else if (penalty === 'DNF') {
         if (previous_dnf) {
           return 'DNF';
         }
-        times.push(-1);
         previous_dnf = true;
       } else {
-        times.push(this.props.rows[i].solve_time + 2);
+        times.push(this.props.rows[i].solve_time + 200);
       }
     }
     var max = -2;
@@ -120,7 +121,7 @@ class SolvesHistory extends React.Component {
     var sum = 0;
     console.log('times: ',times);
     for(var i = 0; i < times.length; i++) {
-      if(times[i] > max) {
+      if(times[i] > max && ! previous_dnf) {
         max = times[i];
         max_i = i;
       }
@@ -133,7 +134,7 @@ class SolvesHistory extends React.Component {
     console.log('min: ', min_i);
     
     for(var i = 0; i < times.length; i++) {
-      if(i !== min_i && i !== max_i) {
+      if(i !== min_i && (i !== max_i || previous_dnf)) { // the max_i condition can be ignored if there has ben a previous dnf
         sum = sum + times[i]
       }
     }
@@ -144,13 +145,17 @@ class SolvesHistory extends React.Component {
   }
 
   onButtonClick(text) {
-    var new_penalties = this.state.penalties;
+    var new_penalties = this.state.penalties;i
+    var added = 0;
     for(var i = 0; i < this.state.selected_rows.length; i++) {
       var p_index = this.getIndexOfPenalties(this.state.selected_rows[i]);
+      console.log(this.state.selected_rows[i]);
+      
       if(p_index  === -1) {// currently has no penalty
         new_penalties.push({index: this.state.selected_rows[i], show:text});
+        added++;
       }else {
-        new_penalties[p_index] = {index: this.state.selected_rows[i], show:text}
+        new_penalties[p_index + added] = {index: this.state.selected_rows[i], show:text}
       }
     }
     this.setState({penalties: new_penalties});
@@ -196,7 +201,6 @@ class SolvesHistory extends React.Component {
 
   onDNFClick() {
     this.onButtonClick('DNF');
-    console.log(this.state.penalties);
   }
 
   getIndexOfPenalties(index) {
@@ -239,9 +243,9 @@ class SolvesHistory extends React.Component {
     var arr = []
     for(var i = 0; i < this.props.rows.length; i++) {
        var row = (
-        <TableRow key={i} selected={this.isSelected(i)}>
-        <TableRowColumn>{parseInt(this.props.rows[i].solve_time)/100}</TableRowColumn>
-        <TableRowColumn>{this.getPenalty(i)}</TableRowColumn>
+        <TableRow key={i} selected={this.isSelected(i)} >
+        <TableRowColumn> {parseInt(this.props.rows[i].solve_time)/100}</TableRowColumn>
+        <TableRowColumn> {this.getPenalty(i)}</TableRowColumn>
 	      </TableRow>
       )
     arr.push(row)

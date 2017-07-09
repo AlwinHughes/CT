@@ -82,7 +82,7 @@ class Timer extends React.Component {
       solve_history_rows: [],
       num_of_solves: 0
     }
-    console.log('is authed: ', auth.isUserAuthenticated())
+    console.log('is authed: ', auth.isUserAuthenticated());
     this.handleKeyUp = this.handleKeyUp.bind(this);
     this.handleKeyDown = this.handleKeyDown.bind(this);
     window.addEventListener('keyup', this.handleKeyUp, false);
@@ -198,7 +198,6 @@ class Timer extends React.Component {
   }
 
   handlOnclick (event) {
-    console.log(this.state.solves);
     if (this.state.timerstate === 'started'){
       clearInterval(this.state.intervalID);
       var current_solve = {
@@ -260,7 +259,9 @@ class Timer extends React.Component {
   }
 
   sendTimeToServer(solve) {
-    request
+    if(this.props.isAuthed) {
+    
+     request
       .post('/api/addsolve')
       .send(solve)
       .set('Authorization', 'bearer '+auth.getToken())
@@ -269,7 +270,10 @@ class Timer extends React.Component {
           console.log('err: ', err);
         }
         console.log('res: ', res);
-	});
+   	});
+    
+    }
+    
   }
 
   getButtonDisplay(string) {

@@ -24,6 +24,7 @@ class auth {
    */
   static deauthenticateUser() {
     localStorage.removeItem('token');
+    return '';
   }
 
   /**
