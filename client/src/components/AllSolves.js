@@ -21,8 +21,8 @@ class AllSolves extends React.Component {
     this.getTableRows();
   }
 
-  render() {
-    console.log('')
+  render() { 
+    console.log('render');
     return (
       <div>
         <button onClick={this.getTableRows}>Refresh</button>
@@ -38,8 +38,10 @@ class AllSolves extends React.Component {
 
   getTableRows() {
     var arr = [];
+    console.log('puzzle: ', this.props.puzzle);
     request
       .post('/api/getallsolves')
+      .send({puzzle: this.props.puzzle})
       .set('Authorization', 'bearer '+auth.getToken())
       .end(function(err, res) {
         if(err) {

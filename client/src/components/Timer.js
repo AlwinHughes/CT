@@ -260,7 +260,7 @@ class Timer extends React.Component {
 
   sendTimeToServer(solve) {
     if(this.props.isAuthed) {
-    
+    solve.puzzle = this.props.puzzle
      request
       .post('/api/addsolve')
       .send(solve)

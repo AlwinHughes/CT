@@ -58,7 +58,8 @@ class SelectPuzzle extends React.Component {
   render() {
     
     return(
-      <DropDownMenu value={this.state.value} onChange={this.onChange}>
+      <center>
+      <DropDownMenu value={this.state.value} onChange={this.onChange} style={{width: 50, padding: '0 0 0 40'}}>
         <MenuItem value={1} primaryText='2x2'/>
         <MenuItem value={2} primaryText='3x3'/>
         <MenuItem value={3} primaryText='4x4'/>
@@ -66,11 +67,13 @@ class SelectPuzzle extends React.Component {
         <MenuItem value={5} primaryText='6x6'/>
         <MenuItem value={7} primaryText='7x7'/>
       </DropDownMenu>
+      </center>
     )
   }
 
   onChange(event, index, value) {
     this.setState({value: value});
+    this.props.callback(value);
   }
 
 
@@ -80,8 +83,9 @@ class Base extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = {isAuthed: auth.isUserAuthenticated() }
+    this.state = {isAuthed: auth.isUserAuthenticated(), puzzle: 1};
     this.onNotAuth = this.onNotAuth.bind(this);
+    this.onChangePuzzle = this.onChangePuzzle.bind(this);
   }
 
   onNotAuth() {
@@ -90,22 +94,22 @@ class Base extends React.Component {
     this.setState({isAuthed: false});
   }
 
+  onChangePuzzle(puzzle) {
+    this.setState({puzzle: puzzle});
+    console.log('on change');
+  }
+
   render() {
    var children_props =  React.Children.map(this.props.children, function(child) {
-      return React.cloneElement(child, {onNotAuth: this.onNotAuthed, isAuthed: this.state.isAuthed});
+      return React.cloneElement(child, {onNotAuth: this.onNotAuthed, isAuthed: this.state.isAuthed, puzzle: this.state.puzzle});
     }.bind(this));
-    var test = (<SelectPuzzle/>) 
     return (
-    <div>
-      <AppBar  title="CT" children={test}
-        iconElementRight={auth.isUserAuthenticated() ? <LoggedIn onNotAuthed={this.onNotAuth}/>: <Login/>}/>
-
+       <div>
+        <AppBar  title={<SelectPuzzle callback={this.onChangePuzzle}  />} iconElementRight={auth.isUserAuthenticated() ? <LoggedIn onNotAuthed={this.onNotAuth}/>: <Login/>}/>
         <div>
-    
-       {children_props}
-      
+          {children_props}
         </div>
-    </div>
+      </div>
   )
   }
 }
